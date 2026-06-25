@@ -8,7 +8,7 @@ import {
   generateRsc,
   generateRadiusTxt,
   generateCsv,
-} from "../functions/_lib/netmap";
+} from "../src/lib/netmap";
 
 test("ipToInt / intToIp round-trip", () => {
   assert.equal(ipToInt("217.177.0.96"), 217 * 256 ** 3 + 177 * 256 ** 2 + 0 * 256 + 96);

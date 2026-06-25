@@ -2,11 +2,11 @@
   "name": "logisafe-cgnat",
   "version": "1.0.0",
   "private": true,
-  "description": "CGNAT netmap + RADIUS mapping generator for Cloudflare Pages",
+  "description": "CGNAT netmap + RADIUS mapping generator for Cloudflare Workers",
   "scripts": {
-    "dev": "wrangler pages dev public",
+    "dev": "wrangler dev",
     "test": "node --import tsx --test test/*.test.ts",
-    "deploy": "wrangler pages deploy public"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",

@@ -25,6 +25,13 @@
   #errors { color: #c0392b; white-space: pre-wrap; margin-top: 1rem; font-size: .9rem; }
   #downloads { margin-top: 1rem; display: none; gap: .5rem; }
   #downloads a { display: inline-block; margin-right: .75rem; }
+  footer.promo { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
+  footer.promo h2 { font-size: .95rem; color: #555; margin-bottom: .75rem; }
+  .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem; }
+  .promo-card { display: block; border: 1px solid #ddd; border-radius: 8px; padding: .9rem; background: #fafafa; text-decoration: none; color: inherit; transition: box-shadow .15s, border-color .15s; }
+  .promo-card[href]:hover { border-color: #1a6dd1; box-shadow: 0 2px 8px rgba(26,109,209,.15); }
+  .promo-card .brand { font-weight: 700; color: #1a6dd1; margin-bottom: .25rem; }
+  .promo-card .desc { font-size: .82rem; color: #555; }
 </style>
 </head>
 <body>
@@ -80,6 +87,28 @@
   <a id="dlTxt">cgnat_radius.txt indir</a>
   <a id="dlCsv">cgnat_summary.csv indir</a>
 </div>
+
+<footer class="promo">
+  <h2>LogiSafe Ürünleri</h2>
+  <div class="promo-grid">
+    <a class="promo-card" href="https://logispot.net/" target="_blank" rel="noopener">
+      <div class="brand">LogiSpot</div>
+      <div class="desc">Hotspot çözümü.</div>
+    </a>
+    <a class="promo-card" href="https://logisafe.net.tr/hizmetlerimiz/danismanlik/isp-planning/" target="_blank" rel="noopener">
+      <div class="brand">LogiSafe MikroTik Support</div>
+      <div class="desc">MikroTik altyapınız için destek hizmeti.</div>
+    </a>
+    <div class="promo-card">
+      <div class="brand">LogiFeeds</div>
+      <div class="desc">USOM, ESB ve BTK tarafından iletilen engelleme/yasaklama kararlarını otomatik uygulayan sistem.</div>
+    </div>
+    <a class="promo-card" href="https://logisafe.net.tr/cozumlerimiz/ddos-koruma/" target="_blank" rel="noopener">
+      <div class="brand">LogiSafe DDoS Danışmanlık</div>
+      <div class="desc">DDoS koruma ve danışmanlık hizmeti.</div>
+    </a>
+  </div>
+</footer>
 
 <script>
 const tbody = document.querySelector('#rowsTable tbody');

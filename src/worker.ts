@@ -5,11 +5,15 @@ import {
   generateRadiusTxt,
   generateRsc,
   validateRows,
-} from "../_lib/netmap";
+} from "./lib/netmap";
 
 interface RequestBody {
   settings: Settings;
   rows: BlockRow[];
+}
+
+interface Env {
+  ASSETS: Fetcher;
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -19,10 +23,10 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-export const onRequestPost: PagesFunction = async (context) => {
+async function handleGenerate(request: Request): Promise<Response> {
   let body: RequestBody;
   try {
-    body = await context.request.json();
+    body = await request.json();
   } catch {
     return jsonResponse({ errors: [{ row: -1, messages: ["Geçersiz JSON gövdesi."] }] }, 400);
   }
@@ -56,4 +60,16 @@ export const onRequestPost: PagesFunction = async (context) => {
   const csv = generateCsv(parsed);
 
   return jsonResponse({ rsc, txt, csv });
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/generate" && request.method === "POST") {
+      return handleGenerate(request);
+    }
+
+    return env.ASSETS.fetch(request);
+  },
 };
