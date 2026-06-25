@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CGNAT Netmap / RADIUS Üretici</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 980px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; }
+  fieldset { margin-bottom: 1.5rem; border: 1px solid #ccc; border-radius: 6px; }
+  legend { font-weight: 600; padding: 0 .5rem; }
+  label { display: block; font-size: .85rem; margin-bottom: .25rem; color: #444; }
+  input[type=text], input[type=number] { width: 100%; padding: .4rem; box-sizing: border-box; }
+  .settings-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .settings-row > div { flex: 1; min-width: 160px; }
+  .protocols { display: flex; gap: 1rem; align-items: center; }
+  table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  th, td { padding: .4rem; text-align: left; }
+  th { font-size: .8rem; color: #555; }
+  td input { font-size: .9rem; }
+  .row-actions { display: flex; gap: .5rem; margin-top: .5rem; }
+  button { cursor: pointer; padding: .5rem 1rem; border-radius: 5px; border: 1px solid #888; background: #f5f5f5; }
+  button.primary { background: #1a6dd1; color: #fff; border-color: #1a6dd1; font-weight: 600; }
+  button.danger { background: #fff; color: #c0392b; border-color: #c0392b; }
+  #errors { color: #c0392b; white-space: pre-wrap; margin-top: 1rem; font-size: .9rem; }
+  #downloads { margin-top: 1rem; display: none; gap: .5rem; }
+  #downloads a { display: inline-block; margin-right: .75rem; }
+</style>
+</head>
+<body>
+<h1>CGNAT Netmap + RADIUS Üretici</h1>
+<p>Her satır bir private/public blok çiftini temsil eder. Public ve private CIDR aynı boyutta olmalı (örn. /29 ↔ /29) — netmap host-bit eşlemesi bu şekilde çalışır.</p>
+
+<fieldset>
+  <legend>Genel ayarlar</legend>
+  <div class="settings-row">
+    <div>
+      <label for="outInterface">Out-interface (VLAN)</label>
+      <input type="text" id="outInterface" placeholder="vlan_2756" value="vlan_2756" />
+    </div>
+    <div>
+      <label for="comment">Comment</label>
+      <input type="text" id="comment" placeholder="newcgnat" value="newcgnat" />
+    </div>
+    <div>
+      <label>Protokoller</label>
+      <div class="protocols">
+        <label><input type="checkbox" value="udp" checked /> udp</label>
+        <label><input type="checkbox" value="tcp" checked /> tcp</label>
+        <label><input type="checkbox" value="icmp" /> icmp</label>
+      </div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Bloklar</legend>
+  <table id="rowsTable">
+    <thead>
+      <tr>
+        <th>Public CIDR</th>
+        <th>Private CIDR</th>
+        <th>Başlangıç portu</th>
+        <th>Port genişliği</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="row-actions">
+    <button type="button" id="addRow">+ Satır ekle</button>
+  </div>
+</fieldset>
+
+<button type="button" class="primary" id="generate">Üret</button>
+
+<div id="errors"></div>
+<div id="downloads">
+  <a id="dlRsc">cgnat.rsc indir</a>
+  <a id="dlTxt">cgnat_radius.txt indir</a>
+  <a id="dlCsv">cgnat_summary.csv indir</a>
+</div>
+
+<script>
+const tbody = document.querySelector('#rowsTable tbody');
+
+function addRow(values) {
+  const tr = document.createElement('tr');
+  const v = values || { publicCidr: '', privateCidr: '', portStart: '', portWidth: '' };
+  tr.innerHTML = `
+    <td><input type="text" class="publicCidr" placeholder="217.177.0.96/29" value="${v.publicCidr}"></td>
+    <td><input type="text" class="privateCidr" placeholder="100.48.15.0/29" value="${v.privateCidr}"></td>
+    <td><input type="number" class="portStart" placeholder="1000" value="${v.portStart}"></td>
+    <td><input type="number" class="portWidth" placeholder="1500" value="${v.portWidth}"></td>
+    <td><button type="button" class="danger removeRow">Sil</button></td>
+  `;
+  tr.querySelector('.removeRow').addEventListener('click', () => tr.remove());
+  tbody.appendChild(tr);
+}
+
+document.getElementById('addRow').addEventListener('click', () => addRow());
+addRow({ publicCidr: '217.177.0.96/29', privateCidr: '100.48.15.0/29', portStart: 1000, portWidth: 1500 });
+
+document.getElementById('generate').addEventListener('click', async () => {
+  const errorsEl = document.getElementById('errors');
+  const downloadsEl = document.getElementById('downloads');
+  errorsEl.textContent = '';
+  downloadsEl.style.display = 'none';
+
+  const settings = {
+    outInterface: document.getElementById('outInterface').value.trim(),
+    comment: document.getElementById('comment').value.trim(),
+    protocols: Array.from(document.querySelectorAll('.protocols input[type=checkbox]:checked')).map(i => i.value),
+  };
+
+  const rows = Array.from(tbody.querySelectorAll('tr')).map(tr => ({
+    publicCidr: tr.querySelector('.publicCidr').value.trim(),
+    privateCidr: tr.querySelector('.privateCidr').value.trim(),
+    portStart: Number(tr.querySelector('.portStart').value),
+    portWidth: Number(tr.querySelector('.portWidth').value),
+  }));
+
+  let res, data;
+  try {
+    res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ settings, rows }),
+    });
+    data = await res.json();
+  } catch (e) {
+    errorsEl.textContent = 'İstek başarısız: ' + e.message;
+    return;
+  }
+
+  if (!res.ok) {
+    const msgs = (data.errors || []).map(e => `Satır ${e.row >= 0 ? e.row + 1 : '-'}: ${e.messages.join(' ')}`);
+    errorsEl.textContent = msgs.join('\n');
+    return;
+  }
+
+  function setDownload(id, filename, content, type) {
+    const blob = new Blob([content], { type });
+    const a = document.getElementById(id);
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+  }
+
+  setDownload('dlRsc', 'cgnat.rsc', data.rsc, 'text/plain');
+  setDownload('dlTxt', 'cgnat_radius.txt', data.txt, 'text/plain');
+  setDownload('dlCsv', 'cgnat_summary.csv', data.csv, 'text/csv');
+  downloadsEl.style.display = 'block';
+});
+</script>
+</body>
+</html>
