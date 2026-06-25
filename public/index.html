@@ -5,41 +5,136 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CGNAT Netmap / RADIUS Üretici</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 980px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-  h1 { font-size: 1.4rem; }
-  fieldset { margin-bottom: 1.5rem; border: 1px solid #ccc; border-radius: 6px; }
-  legend { font-weight: 600; padding: 0 .5rem; }
-  label { display: block; font-size: .85rem; margin-bottom: .25rem; color: #444; }
-  input[type=text], input[type=number] { width: 100%; padding: .4rem; box-sizing: border-box; }
-  .settings-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-  .settings-row > div { flex: 1; min-width: 160px; }
-  .protocols { display: flex; gap: 1rem; align-items: center; }
-  table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
-  th, td { padding: .4rem; text-align: left; }
-  th { font-size: .8rem; color: #555; }
+  :root {
+    --bg: #0a0e14;
+    --card: #12161f;
+    --card-border: #232936;
+    --field-bg: #0d1118;
+    --field-border: #232936;
+    --text: #e6e9ef;
+    --text-muted: #8b94a3;
+    --accent: #5b8def;
+    --accent-soft: rgba(91, 141, 239, .12);
+    --danger: #e0607a;
+    --primary-btn: #7fd99a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 0 0 .5rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin: 0 0 2rem;
+    font-size: 1.05rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .card h2 {
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin: 0 0 1rem;
+  }
+  label {
+    display: block;
+    font-size: .95rem;
+    color: var(--text);
+    margin-bottom: .5rem;
+  }
+  input[type=text], input[type=number] {
+    width: 100%;
+    padding: .7rem .9rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: .95rem;
+  }
+  input::placeholder { color: #4d5566; }
+  input:focus { outline: none; border-color: var(--accent); }
+  .settings-row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .settings-row > div { flex: 1; min-width: 200px; }
+  .protocols { display: flex; gap: 1.25rem; align-items: center; padding-top: .4rem; }
+  .protocols label { display: flex; align-items: center; gap: .4rem; font-size: .9rem; margin: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: .5rem .4rem; text-align: left; }
+  th { font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
   td input { font-size: .9rem; }
-  .row-actions { display: flex; gap: .5rem; margin-top: .5rem; }
-  button { cursor: pointer; padding: .5rem 1rem; border-radius: 5px; border: 1px solid #888; background: #f5f5f5; }
-  button.primary { background: #1a6dd1; color: #fff; border-color: #1a6dd1; font-weight: 600; }
-  button.danger { background: #fff; color: #c0392b; border-color: #c0392b; }
-  #errors { color: #c0392b; white-space: pre-wrap; margin-top: 1rem; font-size: .9rem; }
+  .row-actions { margin-top: .75rem; }
+  button {
+    cursor: pointer;
+    padding: .65rem 1.4rem;
+    border-radius: 8px;
+    border: 1px solid var(--field-border);
+    background: var(--field-bg);
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 600;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary {
+    background: var(--primary-btn);
+    color: #0a0e14;
+    border-color: var(--primary-btn);
+    font-size: 1rem;
+    padding: .75rem 1.8rem;
+  }
+  button.primary:hover { filter: brightness(1.08); border-color: var(--primary-btn); }
+  button.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+  .generate-row { text-align: right; }
+  #errors { color: var(--danger); white-space: pre-wrap; margin-top: 1rem; font-size: .9rem; }
   #downloads { margin-top: 1rem; display: none; gap: .5rem; }
-  #downloads a { display: inline-block; margin-right: .75rem; }
-  footer.promo { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
-  footer.promo h2 { font-size: .95rem; color: #555; margin-bottom: .75rem; }
-  .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem; }
-  .promo-card { display: block; border: 1px solid #ddd; border-radius: 8px; padding: .9rem; background: #fafafa; text-decoration: none; color: inherit; transition: box-shadow .15s, border-color .15s; }
-  .promo-card[href]:hover { border-color: #1a6dd1; box-shadow: 0 2px 8px rgba(26,109,209,.15); }
-  .promo-card .brand { font-weight: 700; color: #1a6dd1; margin-bottom: .25rem; }
-  .promo-card .desc { font-size: .82rem; color: #555; }
+  #downloads a { display: inline-block; margin-right: 1rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+  #downloads a:hover { text-decoration: underline; }
+  footer.promo { margin-top: 2.5rem; }
+  footer.promo h2 {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+  .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .promo-card {
+    display: block;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s, transform .15s;
+  }
+  .promo-card[href]:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .promo-card .brand { font-weight: 700; color: var(--accent); margin-bottom: .4rem; font-size: 1.05rem; }
+  .promo-card .desc { font-size: .9rem; color: var(--text-muted); line-height: 1.4; }
 </style>
 </head>
 <body>
-<h1>CGNAT Netmap + RADIUS Üretici</h1>
-<p>Her satır bir private/public blok çiftini temsil eder. Public ve private CIDR aynı boyutta olmalı (örn. /29 ↔ /29) — netmap host-bit eşlemesi bu şekilde çalışır.</p>
+<h1>CGNAT Netmap / RADIUS Üretici</h1>
+<p class="subtitle">Public/private blok çiftlerinden MikroTik netmap kuralları ve RADIUS eşleme dosyaları üretir</p>
 
-<fieldset>
-  <legend>Genel ayarlar</legend>
+<div class="card">
+  <h2>Genel ayarlar</h2>
   <div class="settings-row">
     <div>
       <label for="outInterface">Out-interface (VLAN)</label>
@@ -58,10 +153,8 @@
       </div>
     </div>
   </div>
-</fieldset>
 
-<fieldset>
-  <legend>Bloklar</legend>
+  <h2>Bloklar</h2>
   <table id="rowsTable">
     <thead>
       <tr>
@@ -77,36 +170,38 @@
   <div class="row-actions">
     <button type="button" id="addRow">+ Satır ekle</button>
   </div>
-</fieldset>
 
-<button type="button" class="primary" id="generate">Üret</button>
+  <div class="generate-row" style="margin-top: 1.5rem;">
+    <button type="button" class="primary" id="generate">Üret</button>
+  </div>
 
-<div id="errors"></div>
-<div id="downloads">
-  <a id="dlRsc">cgnat.rsc indir</a>
-  <a id="dlTxt">cgnat_radius.txt indir</a>
-  <a id="dlCsv">cgnat_summary.csv indir</a>
+  <div id="errors"></div>
+  <div id="downloads">
+    <a id="dlRsc">cgnat.rsc indir</a>
+    <a id="dlTxt">cgnat_radius.txt indir</a>
+    <a id="dlCsv">cgnat_summary.csv indir</a>
+  </div>
 </div>
 
 <footer class="promo">
-  <h2>LogiSafe Ürünleri</h2>
+  <h2>LogiSafe Çözümleri</h2>
   <div class="promo-grid">
     <a class="promo-card" href="https://logispot.net/" target="_blank" rel="noopener">
       <div class="brand">LogiSpot</div>
       <div class="desc">Hotspot çözümü.</div>
     </a>
+    <a class="promo-card" href="https://logisafe.net.tr/cozumlerimiz/ddos-koruma/" target="_blank" rel="noopener">
+      <div class="brand">DDoS Danışmanlık</div>
+      <div class="desc">LogiSafe DDoS koruma danışmanlık ve mitigasyon çözümleri.</div>
+    </a>
     <a class="promo-card" href="https://logisafe.net.tr/hizmetlerimiz/danismanlik/isp-planning/" target="_blank" rel="noopener">
-      <div class="brand">LogiSafe MikroTik Support</div>
-      <div class="desc">MikroTik altyapınız için destek hizmeti.</div>
+      <div class="brand">MikroTik Danışmanlık</div>
+      <div class="desc">LogiSafe MikroTik network danışmanlık hizmetleri ile ISP planlama.</div>
     </a>
     <div class="promo-card">
       <div class="brand">LogiFeeds</div>
-      <div class="desc">USOM, ESB ve BTK tarafından iletilen engelleme/yasaklama kararlarını otomatik uygulayan sistem.</div>
+      <div class="desc">USOM, ESB ve BTK'nın ilettiği engelleme ve yasaklanması gereken kararları otomatik olarak uygulayan engelleme sistemi.</div>
     </div>
-    <a class="promo-card" href="https://logisafe.net.tr/cozumlerimiz/ddos-koruma/" target="_blank" rel="noopener">
-      <div class="brand">LogiSafe DDoS Danışmanlık</div>
-      <div class="desc">DDoS koruma ve danışmanlık hizmeti.</div>
-    </a>
   </div>
 </footer>
 
